@@ -2,6 +2,7 @@ import csv
 import json
 import argparse
 import os
+import sys
 
 from trueskill import rate, TrueSkill, Rating
 
@@ -82,5 +83,5 @@ if config.output is not None:
     with open(config.output, "w") as outputjson:
         json.dump({"rankings": result}, outputjson, indent=4)
 else:
-    print(result)
+    json.dump({"rankings": result}, sys.stdout, indent=4)
 
