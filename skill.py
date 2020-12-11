@@ -81,7 +81,7 @@ result = {}
 for f in config.files:
     base = os.path.basename(f)
     name = os.path.splitext(base)[0]
-    result[name] = {"rankings": processOneCsv(f)}
+    result[name] = processOneCsv(f)
 
 if config.output is not None:
     with open(config.output, "w") as outputjson:
