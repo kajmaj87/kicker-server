@@ -10,16 +10,17 @@ from trueskill import rate, TrueSkill, Rating
 p = argparse.ArgumentParser(
     description="Converts raw csv input to a json with trueskill ratings"
 )
-p.add_argument("files", help="input files in csv format with raw scores", nargs='*')
+p.add_argument("files", help="input files in csv format with raw scores", nargs="*")
 p.add_argument("-o", "--output", help="output json with true skill ratings")
 
 config = p.parse_args()
 
+
 def rowToDict(row, ranks):
     result = {}
     result["date"] = row[0]
-    result["groupA"] = {p: playerRank(p,ranks) for p in splitPlayers(row[1])}
-    result["groupB"] = {p: playerRank(p,ranks) for p in splitPlayers(row[2])}
+    result["groupA"] = {p: playerRank(p, ranks) for p in splitPlayers(row[1])}
+    result["groupB"] = {p: playerRank(p, ranks) for p in splitPlayers(row[2])}
     result["result"] = row[3]
     return result
 
@@ -68,20 +69,22 @@ def processOneCsv(csvPath):
             ranks = processRanks(rowToDict(match, ranks), ranks)
 
         result = []
-        for k, v in sorted(ranks.items(), key=lambda item: 3 * item[1].sigma - item[1].mu):
+        for k, v in sorted(
+            ranks.items(), key=lambda item: 3 * item[1].sigma - item[1].mu
+        ):
             result.append(toRankObject(k, v))
         return result
+
 
 result = {}
 
 for f in config.files:
     base = os.path.basename(f)
     name = os.path.splitext(base)[0]
-    result[name] = processOneCsv(f)
+    result[name] = {"rankings": processOneCsv(f)}
 
 if config.output is not None:
     with open(config.output, "w") as outputjson:
-        json.dump({"rankings": result}, outputjson, indent=4)
+        json.dump(result, outputjson, indent=4)
 else:
-    json.dump({"rankings": result}, sys.stdout, indent=4)
-
+    json.dump(result, sys.stdout, indent=4)
