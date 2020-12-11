@@ -1,5 +1,14 @@
 import csv
+import json
+import argparse
 from trueskill import rate, TrueSkill, Rating
+
+
+p = argparse.ArgumentParser(description="Converts raw csv input to a json with trueskill ratings")
+p.add_argument("-i", "--input", help="input csv with raw scores")
+p.add_argument("-o", "--output", help="output json with true skill ratings")
+
+config = p.parse_args()
 
 ranks = {}
 
@@ -34,18 +43,22 @@ def processRanks(match):
         updateRanks(rate([match['groupA'], match['groupB']]))
     if match['result'] == 'loss':
         updateRanks(rate([match['groupB'], match['groupA']]))
-
-def toRankObject(rating):
+def toRankObject(name, rating):
     return {
-        'name': rating.key,
-        'rank': rating.rating.mu - rating.rating.sigma*3,
-        'mu': rating.rating.mu,
-        'sigma': rating.rating.sigma
+        'name': name,
+        'rank': rating.mu - rating.sigma*3,
+        'mu': rating.mu,
+        'sigma': rating.sigma
     }
 
-with open('data/history.csv', newline='') as datafile:
+with open(config.input, newline='') as datafile:
     reader = csv.reader(datafile, delimiter=',')
     # skip header row
     next(reader, None)
     matches = [processRanks(rowToDict(match)) for match in reader]
-    print({p: rating for p, rating in sorted(ranks.items(), key=lambda item: item[1].mu - 3*item[1].sigma)})
+    result = []
+    for k,v in sorted(ranks.items(), key=lambda item: 3*item[1].sigma - item[1].mu):
+        result.append(toRankObject(k,v))
+
+    with open(config.output, 'w') as outputjson:
+        json.dump({'rankings': result}, outputjson, indent=4)
