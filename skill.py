@@ -7,7 +7,7 @@ from trueskill import rate, TrueSkill, Rating
 p = argparse.ArgumentParser(
     description="Converts raw csv input to a json with trueskill ratings"
 )
-p.add_argument("-i", "--input", help="input csv with raw scores")
+p.add_argument("-i", "--input", help="input csv with raw scores", required=True)
 p.add_argument("-o", "--output", help="output json with true skill ratings")
 
 config = p.parse_args()
@@ -67,5 +67,8 @@ with open(config.input, newline="") as datafile:
     for k, v in sorted(ranks.items(), key=lambda item: 3 * item[1].sigma - item[1].mu):
         result.append(toRankObject(k, v))
 
-    with open(config.output, "w") as outputjson:
-        json.dump({"rankings": result}, outputjson, indent=4)
+    if config.output is not None:
+        with open(config.output, "w") as outputjson:
+            json.dump({"rankings": result}, outputjson, indent=4)
+    else:
+        print(result)
